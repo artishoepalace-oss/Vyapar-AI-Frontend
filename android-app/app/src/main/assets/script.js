@@ -24,6 +24,7 @@ function updateLoaderNetworkStatus(){
   const text = document.getElementById('loaderText');
 
   if(!network){
+
     return;
   }
 
@@ -567,7 +568,6 @@ function getCurrentPlan(){
   return 'free';
 }
 
-
 function requirePlan(requiredPlan){
   const planRank = {
     free: 0,
@@ -577,13 +577,17 @@ function requirePlan(requiredPlan){
 
   const currentPlan = getCurrentPlan();
 
-  if(planRank[currentPlan] >= planRank[requiredPlan]){
+  if(
+    planRank[currentPlan] >=
+    planRank[requiredPlan]
+  ){
     return true;
   }
 
-  alert(requiredPlan.toUpperCase() + ' plan required');
-
-  setTab('subscription');
+  showUpgradePopup(
+    requiredPlan,
+    currentPlan
+  );
 
   return false;
 }
@@ -3326,134 +3330,514 @@ function showPaymentCancelPopup(planName){
     popup.remove();
   };
 }
-
 function showUpgradePopup(requiredPlan, currentPlan){
-  const oldPopup = document.getElementById('upgradePlanPopup');
+  const oldPopup =
+    document.getElementById('upgradePlanPopup');
 
   if(oldPopup){
     oldPopup.remove();
   }
 
-  const planName = requiredPlan.toUpperCase();
-  const price = requiredPlan === 'business' ? '₹499/month' : '₹199/month';
+  const isBusiness =
+    requiredPlan === 'business';
 
-  const features = requiredPlan === 'business'
-    ? ['Advanced stock tools', 'Business level analytics', 'Multi-shop growth tools']
-    : ['AI upload unlocked', 'Analytics unlocked', 'Business valuation unlocked'];
+  const planName =
+    isBusiness ? 'Business' : 'Pro';
 
-  const popup = document.createElement('div');
+  const price =
+    isBusiness ? '₹499' : '₹199';
+
+  const subtitle =
+    isBusiness
+      ? 'Unlock complete stock intelligence and advanced business tools.'
+      : 'Unlock AI-powered analytics and smarter business decisions.';
+
+  const features = isBusiness
+    ? [
+        {
+          icon: '◈',
+          title: 'Advanced Stock',
+          text: 'Smart stock tracking, scanner and low-stock intelligence.'
+        },
+        {
+          icon: '◎',
+          title: 'Business Analytics',
+          text: 'Detailed reports, insights and performance monitoring.'
+        },
+        {
+          icon: '⌁',
+          title: 'Multi-Shop Ready',
+          text: 'Built for growing businesses and multiple outlets.'
+        }
+      ]
+    : [
+        {
+          icon: '✦',
+          title: 'AI Upload',
+          text: 'Import and understand business data using AI.'
+        },
+        {
+          icon: '◉',
+          title: 'Premium Analytics',
+          text: 'Profit graphs, trends and actionable insights.'
+        },
+        {
+          icon: '◆',
+          title: 'Business Valuation',
+          text: 'Estimate growth, ROI and business value.'
+        }
+      ];
+
+  const popup =
+    document.createElement('div');
+
   popup.id = 'upgradePlanPopup';
 
   popup.style.cssText = `
     position:fixed;
     inset:0;
-    background:rgba(2,6,23,0.78);
+    z-index:999999999;
     display:flex;
     align-items:center;
     justify-content:center;
-    z-index:999999999;
-    padding:20px;
+    padding:18px;
+    background:
+      radial-gradient(
+        circle at 50% 15%,
+        rgba(34,211,238,0.16),
+        transparent 35%
+      ),
+      rgba(2,6,23,0.86);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    animation:premiumFadeIn .25s ease;
   `;
 
   popup.innerHTML = `
-    <div style="
-      width:min(92vw,390px);
-      border-radius:28px;
-      padding:28px 22px 22px;
-      text-align:center;
-      color:#f8fafc;
-      background:linear-gradient(180deg,#0f172a,#020617);
-      border:1px solid rgba(34,211,238,0.32);
-      box-shadow:0 25px 80px rgba(0,0,0,0.58);
-      font-family:Arial,sans-serif;
-    ">
-      <button id="closeUpgradePopup" style="
-        float:right;
-        width:34px;
-        height:34px;
-        border-radius:50%;
-        border:1px solid rgba(255,255,255,0.12);
-        background:rgba(255,255,255,0.06);
-        color:white;
-        font-size:22px;
-      ">×</button>
+    <div
+      id="upgradePopupCard"
+      style="
+        position:relative;
+        width:min(94vw,430px);
+        overflow:hidden;
+        border-radius:30px;
+        padding:1px;
+        background:
+          linear-gradient(
+            135deg,
+            rgba(103,232,249,0.75),
+            rgba(59,130,246,0.26),
+            rgba(250,204,21,0.40)
+          );
+        box-shadow:
+          0 35px 100px rgba(0,0,0,0.72),
+          0 0 50px rgba(34,211,238,0.15);
+        animation:premiumCardIn .35s
+          cubic-bezier(.2,.8,.2,1);
+      "
+    >
+      <div
+        style="
+          position:relative;
+          overflow:hidden;
+          border-radius:29px;
+          padding:26px 22px 22px;
+          color:#f8fafc;
+          background:
+            radial-gradient(
+              circle at top right,
+              rgba(37,99,235,0.24),
+              transparent 36%
+            ),
+            radial-gradient(
+              circle at bottom left,
+              rgba(34,211,238,0.12),
+              transparent 36%
+            ),
+            linear-gradient(
+              160deg,
+              #101827 0%,
+              #07101f 55%,
+              #030712 100%
+            );
+          font-family:
+            Inter,
+            system-ui,
+            -apple-system,
+            sans-serif;
+        "
+      >
+        <div
+          style="
+            position:absolute;
+            width:170px;
+            height:170px;
+            right:-70px;
+            top:-80px;
+            border-radius:50%;
+            background:rgba(34,211,238,0.11);
+            filter:blur(12px);
+          "
+        ></div>
 
-      <div style="font-size:44px;margin:10px 0;">👑</div>
+        <button
+          id="closeUpgradePopup"
+          aria-label="Close"
+          style="
+            position:absolute;
+            top:16px;
+            right:16px;
+            width:38px;
+            height:38px;
+            border-radius:50%;
+            border:1px solid
+              rgba(255,255,255,0.12);
+            background:
+              rgba(255,255,255,0.06);
+            color:#e2e8f0;
+            font-size:22px;
+            line-height:1;
+            cursor:pointer;
+            backdrop-filter:blur(10px);
+          "
+        >
+          ×
+        </button>
 
-      <p style="
-        display:inline-block;
-        padding:7px 13px;
-        border-radius:999px;
-        background:rgba(34,211,238,0.12);
-        color:#67e8f9;
-        font-size:12px;
-        font-weight:800;
-      ">
-        Premium Feature Locked
-      </p>
+        <div
+          style="
+            width:72px;
+            height:72px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            margin:4px auto 17px;
+            border-radius:23px;
+            font-size:35px;
+            background:
+              linear-gradient(
+                145deg,
+                rgba(34,211,238,0.24),
+                rgba(37,99,235,0.22)
+              );
+            border:1px solid
+              rgba(103,232,249,0.35);
+            box-shadow:
+              inset 0 1px 0
+                rgba(255,255,255,0.18),
+              0 15px 40px
+                rgba(34,211,238,0.16);
+          "
+        >
+          ${isBusiness ? '♛' : '✦'}
+        </div>
 
-      <h2>This needs ${planName} Plan</h2>
+        <div style="text-align:center">
+          <span
+            style="
+              display:inline-flex;
+              align-items:center;
+              gap:7px;
+              padding:7px 12px;
+              border-radius:999px;
+              color:#a5f3fc;
+              background:
+                rgba(34,211,238,0.09);
+              border:1px solid
+                rgba(103,232,249,0.20);
+              font-size:11px;
+              font-weight:900;
+              letter-spacing:1.2px;
+              text-transform:uppercase;
+            "
+          >
+            Premium Access
+          </span>
 
-      <p style="color:#cbd5e1;font-size:14px;">
-        Your current plan is <b>${currentPlan.toUpperCase()}</b>.
-        Upgrade to unlock this feature.
-      </p>
+          <h2
+            style="
+              margin:15px 0 7px;
+              font-size:28px;
+              line-height:1.15;
+              letter-spacing:-0.7px;
+            "
+          >
+            Upgrade to ${planName}
+          </h2>
 
-      <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        margin-bottom:14px;
-        padding:14px;
-        border-radius:18px;
-        background:rgba(255,255,255,0.06);
-      ">
-        <span>${planName} Plan</span>
-        <b style="color:#facc15;font-size:20px;">${price}</b>
+          <p
+            style="
+              max-width:340px;
+              margin:0 auto;
+              color:#94a3b8;
+              font-size:14px;
+              line-height:1.55;
+            "
+          >
+            ${subtitle}
+          </p>
+        </div>
+
+        <div
+          style="
+            display:flex;
+            align-items:flex-end;
+            justify-content:center;
+            gap:5px;
+            margin:22px 0 18px;
+          "
+        >
+          <span
+            style="
+              color:#f8fafc;
+              font-size:40px;
+              font-weight:900;
+              letter-spacing:-1.5px;
+            "
+          >
+            ${price}
+          </span>
+
+          <span
+            style="
+              margin-bottom:7px;
+              color:#94a3b8;
+              font-size:13px;
+            "
+          >
+            / month
+          </span>
+        </div>
+
+        <div
+          style="
+            display:grid;
+            gap:10px;
+            margin-bottom:20px;
+          "
+        >
+          ${features.map(feature => `
+            <div
+              style="
+                display:flex;
+                align-items:flex-start;
+                gap:12px;
+                padding:13px;
+                border-radius:17px;
+                background:
+                  rgba(255,255,255,0.045);
+                border:1px solid
+                  rgba(255,255,255,0.07);
+                box-shadow:
+                  inset 0 1px 0
+                    rgba(255,255,255,0.035);
+              "
+            >
+              <div
+                style="
+                  width:35px;
+                  height:35px;
+                  flex:0 0 35px;
+                  display:flex;
+                  align-items:center;
+                  justify-content:center;
+                  border-radius:12px;
+                  color:#67e8f9;
+                  background:
+                    rgba(34,211,238,0.10);
+                  border:1px solid
+                    rgba(103,232,249,0.16);
+                  font-weight:900;
+                "
+              >
+                ${feature.icon}
+              </div>
+
+              <div>
+                <div
+                  style="
+                    margin-bottom:3px;
+                    color:#f1f5f9;
+                    font-size:14px;
+                    font-weight:850;
+                  "
+                >
+                  ${feature.title}
+                </div>
+
+                <div
+                  style="
+                    color:#94a3b8;
+                    font-size:12px;
+                    line-height:1.4;
+                  "
+                >
+                  ${feature.text}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <button
+          id="upgradeNowBtn"
+          style="
+            position:relative;
+            width:100%;
+            overflow:hidden;
+            border:none;
+            border-radius:17px;
+            padding:15px 18px;
+            color:white;
+            font-size:15px;
+            font-weight:900;
+            letter-spacing:.1px;
+            cursor:pointer;
+            background:
+              linear-gradient(
+                120deg,
+                #0891b2,
+                #2563eb,
+                #4f46e5
+              );
+            box-shadow:
+              0 15px 35px
+                rgba(37,99,235,0.30),
+              inset 0 1px 0
+                rgba(255,255,255,0.24);
+          "
+        >
+          Upgrade to ${planName}
+        </button>
+
+        <button
+          id="upgradeLaterBtn"
+          style="
+            width:100%;
+            margin-top:9px;
+            border:none;
+            padding:12px;
+            color:#94a3b8;
+            background:transparent;
+            font-size:13px;
+            font-weight:750;
+            cursor:pointer;
+          "
+        >
+          Continue with Free Plan
+        </button>
+
+        <div
+          style="
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:7px;
+            margin-top:4px;
+            color:#64748b;
+            font-size:10px;
+            letter-spacing:.2px;
+          "
+        >
+          <span>◉</span>
+          Secure payment powered by Razorpay
+        </div>
       </div>
-
-      <div style="text-align:left;margin-bottom:18px;">
-        ${features.map(x => `<div style="padding:7px 0;">✓ ${x}</div>`).join('')}
-      </div>
-
-      <button id="goToPlansBtn" style="
-        width:100%;
-        border:none;
-        border-radius:16px;
-        padding:14px;
-        background:linear-gradient(135deg,#22d3ee,#2563eb);
-        color:white;
-        font-size:15px;
-        font-weight:900;
-      ">
-        Upgrade Now
-      </button>
-
-      <button id="upgradeLaterBtn" style="
-        width:100%;
-        margin-top:10px;
-        border:1px solid rgba(255,255,255,0.12);
-        border-radius:16px;
-        padding:13px;
-        background:rgba(255,255,255,0.05);
-        color:#cbd5e1;
-        font-size:14px;
-        font-weight:800;
-      ">
-        Maybe Later
-      </button>
     </div>
   `;
 
   document.body.appendChild(popup);
 
-  document.getElementById('closeUpgradePopup').onclick = () => popup.remove();
-  document.getElementById('upgradeLaterBtn').onclick = () => popup.remove();
+  if(
+    !document.getElementById(
+      'premiumPopupAnimationStyle'
+    )
+  ){
+    const style =
+      document.createElement('style');
 
-  document.getElementById('goToPlansBtn').onclick = function(){
-    popup.remove();
-    setTab('subscription', true);
-  };
+    style.id =
+      'premiumPopupAnimationStyle';
+
+    style.innerHTML = `
+      @keyframes premiumFadeIn {
+        from {
+          opacity:0;
+        }
+
+        to {
+          opacity:1;
+        }
+      }
+
+      @keyframes premiumCardIn {
+        from {
+          opacity:0;
+          transform:
+            translateY(22px)
+            scale(.96);
+        }
+
+        to {
+          opacity:1;
+          transform:
+            translateY(0)
+            scale(1);
+        }
+      }
+
+      #upgradeNowBtn:hover {
+        transform:translateY(-1px);
+        filter:brightness(1.08);
+      }
+
+      #upgradeNowBtn:active {
+        transform:scale(.985);
+      }
+
+      #closeUpgradePopup:hover {
+        background:
+          rgba(255,255,255,0.12) !important;
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
+  function closeUpgradePopup(){
+    popup.style.opacity = '0';
+
+    setTimeout(function(){
+      popup.remove();
+    }, 180);
+  }
+
+  document
+    .getElementById('closeUpgradePopup')
+    .onclick = closeUpgradePopup;
+
+  document
+    .getElementById('upgradeLaterBtn')
+    .onclick = closeUpgradePopup;
+
+  document
+    .getElementById('upgradeNowBtn')
+    .onclick = function(){
+      closeUpgradePopup();
+
+      setTimeout(function(){
+        setTab('subscription', true);
+      }, 180);
+    };
+
+  popup.addEventListener(
+    'click',
+    function(event){
+      if(event.target === popup){
+        closeUpgradePopup();
+      }
+    }
+  );
 }
 
 function renderSettings(){
