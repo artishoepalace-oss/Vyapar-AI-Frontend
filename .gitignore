@@ -1,0 +1,28 @@
+# Android / Gradle
+.gradle/
+build/
+*/build/
+local.properties
+*.iml
+
+# APK/AAB outputs
+*.apk
+*.aab
+*.ap_
+
+# Keystores - never upload production signing keys
+*.jks
+*.keystore
+
+# Node backend
+node_modules/
+.env
+.env.*
+!.env.example
+firebase-debug.log
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
