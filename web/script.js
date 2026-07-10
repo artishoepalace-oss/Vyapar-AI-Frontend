@@ -122,7 +122,7 @@ window.addEventListener('load', hideLoader);
 setTimeout(hideLoader, 1200);
 
 const STORAGE_KEY = 'vyapar_ai_prod_v1';
-
+const API_BASE_URL = 'https://vypar-backend.onrender.com';
 const tabs = [
   ['home', 'Dashboard'],
   ['upload', 'AI Upload'],
@@ -225,7 +225,7 @@ function defaults(){
       category: 'Footwear',
       monthlyGoal: 50000,
       totalInvestment: 0,
-      backendUrl: ' https://vypar-backend.onrender.com'
+      backendUrl: API_BASE_URL
     },
     plan: 'free',
     subscription: {
@@ -567,38 +567,6 @@ function getCurrentPlan(){
   return 'free';
 }
 
-function requirePlan(requiredPlan){
-  const planRank = {
-    free: 0,
-    pro: 1,
-    business: 2
-  };
-
-  const currentPlan = getCurrentPlan();
-
-  if(planRank[currentPlan] >= planRank[requiredPlan]){
-    return true;
-  }
-
-  alert(requiredPlan.toUpperCase() + ' plan required');
-
-  setTab('subscription');
-
-  return false;
-}
-
-function authJsonHeaders(){
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer ' + getSubscriptionToken()
-  };
-}
-
-function authFileHeaders(){
-  return {
-    'Authorization': 'Bearer ' + getSubscriptionToken()
-  };
-}
 
 function requirePlan(requiredPlan){
   const planRank = {
@@ -954,8 +922,6 @@ async function scanBoxLabel(){
   const mode = modeInput ? modeInput.value : 'box';
   const qty = qtyInput ? num(qtyInput.value) : 1;
 
-  const backendUrl = 'https://vypar-backend.onrender.com';
-
   const formData = new FormData();
   formData.append('file', fileInput.files[0]);
   formData.append('mode', mode);
@@ -965,7 +931,7 @@ async function scanBoxLabel(){
   status.textContent = 'AI reading started... Please wait.';
 
   try{
-   const res = await fetch(backendUrl + '/ai/scan-box-label', {
+  const res = await fetch(API_BASE_URL + '/ai/scan-box-label', {
   method: 'POST',
   headers: authFileHeaders(),
   body: formData
@@ -2876,10 +2842,14 @@ function selectPlan(planName){
     badge.textContent = planName.toUpperCase() + ' Plan';
   }
 }
-
 async function startPayment(planName){
   if(planName === 'free'){
     selectPlan('free');
+    return;
+  }
+
+  if(planName !== 'pro' && planName !== 'business'){
+    alert('Invalid plan selected');
     return;
   }
 
@@ -2888,110 +2858,153 @@ async function startPayment(planName){
     return;
   }
 
-  const backendUrl = 'https://vypar-backend.onrender.com';
-
   try{
-    showPaymentLoader('Opening Razorpay payment...');
+    showPaymentLoader('Creating payment order...');
 
-    const orderRes = await fetch(backendUrl + '/payment/create-order', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        plan: planName
-      })
-    });
+    const orderResponse = await fetch(
+      API_BASE_URL + '/payment/create-order',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          plan: planName
+        })
+      }
+    );
 
-    const orderData = await orderRes.json();
+    const orderText = await orderResponse.text();
 
-    if(!orderData.success){
-      hidePaymentLoader();
-      alert(orderData.message || 'Order create failed');
-      return;
+    let orderData;
+
+    try{
+      orderData = JSON.parse(orderText);
+    }catch(error){
+      throw new Error(
+        'Backend JSON nahi bhej raha. Response: ' +
+        orderText.slice(0, 150)
+      );
+    }
+
+    if(!orderResponse.ok || !orderData.success){
+      throw new Error(
+        orderData.message ||
+        orderData.error ||
+        'Order create failed'
+      );
+    }
+
+    if(
+      !orderData.keyId ||
+      !orderData.orderId ||
+      !orderData.amount
+    ){
+      throw new Error(
+        'Backend order response incomplete hai'
+      );
     }
 
     const options = {
       key: orderData.keyId,
       amount: orderData.amount,
-      currency: orderData.currency,
+      currency: orderData.currency || 'INR',
+
       name: 'Vyapar AI',
-      description: planName.toUpperCase() + ' Plan',
+
+      description:
+        planName.toUpperCase() + ' Plan',
+
       order_id: orderData.orderId,
 
-      handler: async function(response){
+      handler: async function(paymentResponse){
         try{
           showPaymentLoader('Verifying payment...');
 
-          const verifyRes = await fetch(backendUrl + '/payment/verify', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              plan: planName
-            })
-          });
+          const verifyResponse = await fetch(
+            API_BASE_URL + '/payment/verify',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                razorpay_order_id:
+                  paymentResponse.razorpay_order_id,
 
-          const verifyData = await verifyRes.json();
-          if(verifyData.success && verifyData.subscriptionToken){
-  state.subscription = {
-    plan: verifyData.plan || planName,
-    verified: true,
-    token: verifyData.subscriptionToken
-  };
+                razorpay_payment_id:
+                  paymentResponse.razorpay_payment_id,
 
-  state.plan = verifyData.plan || planName;
+                razorpay_signature:
+                  paymentResponse.razorpay_signature,
 
-  save();
+                plan: planName
+              })
+            }
+          );
 
-  showPlanSuccessPopup(verifyData.plan || planName);
+          const verifyText =
+            await verifyResponse.text();
 
-  return;
-}
+          let verifyData;
+
+          try{
+            verifyData = JSON.parse(verifyText);
+          }catch(error){
+            throw new Error(
+              'Verify API JSON nahi bhej rahi. Response: ' +
+              verifyText.slice(0, 150)
+            );
+          }
+
+          if(
+            !verifyResponse.ok ||
+            !verifyData.success ||
+            !verifyData.subscriptionToken
+          ){
+            throw new Error(
+              verifyData.message ||
+              verifyData.error ||
+              'Payment verification failed'
+            );
+          }
+
+          const activePlan =
+            verifyData.plan || planName;
+
+          state.subscription = {
+            plan: activePlan,
+            verified: true,
+            token: verifyData.subscriptionToken
+          };
+
+          state.plan = activePlan;
+
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(state)
+          );
 
           hidePaymentLoader();
 
-          if(verifyData.success && verifyData.subscriptionToken){
-  const activePlan = verifyData.plan || planName;
+          render();
 
-  state.subscription = {
-    plan: activePlan,
-    verified: true,
-    token: verifyData.subscriptionToken
-  };
+          setTimeout(function(){
+            showPlanSuccessPopup(activePlan);
+          }, 200);
 
-  state.plan = activePlan;
-
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-
-  const badge = document.getElementById('planBadge');
-
-  if(badge){
-    badge.textContent = activePlan.toUpperCase() + ' Plan';
-  }
-
-  hidePaymentLoader();
-
-  renderSubscription();
-
-  setTimeout(function(){
-    hidePaymentLoader();
-    showPlanSuccessPopup(activePlan);
-  }, 200);
-
-  return;
-}
-              
-
-          alert(verifyData.message || 'Payment verify failed');
-
-        } catch(error) {
+        }catch(error){
           hidePaymentLoader();
-          alert('Payment verify error: ' + error.message);
+
+          console.error(
+            'Payment verification error:',
+            error
+          );
+
+          alert(
+            'Payment verify error: ' +
+            error.message
+          );
         }
       },
 
@@ -3010,16 +3023,51 @@ async function startPayment(planName){
       }
     };
 
-    const razorpay = new Razorpay(options);
+    const razorpay =
+      new Razorpay(options);
+
+    razorpay.on(
+      'payment.failed',
+      function(response){
+        hidePaymentLoader();
+
+        const errorDescription =
+          response &&
+          response.error &&
+          response.error.description
+            ? response.error.description
+            : 'Payment failed';
+
+        console.error(
+          'Razorpay payment failed:',
+          response
+        );
+
+        alert(
+          'Payment failed: ' +
+          errorDescription
+        );
+      }
+    );
 
     hidePaymentLoader();
     razorpay.open();
 
-  } catch(error) {
+  }catch(error){
     hidePaymentLoader();
-    alert('Payment error: ' + error.message);
+
+    console.error(
+      'Payment start error:',
+      error
+    );
+
+    alert(
+      'Payment error: ' +
+      error.message
+    );
   }
-}
+} 
+
 function showPaymentLoader(message){
   hidePaymentLoader();
 
