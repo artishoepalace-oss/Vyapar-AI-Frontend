@@ -1069,7 +1069,8 @@
             body:
               JSON.stringify({
                 atCycleEnd:
-                  true
+                  false
+              
               })
           }
         );
@@ -2489,4 +2490,29 @@
         appendSubscriptionManagement();
       }
     );
-})();
+})();window.vyaparLogin = function(){
+  localStorage.removeItem(
+    AUTH_TOKEN_KEY
+  );
+
+  localStorage.removeItem(
+    ACCOUNT_CACHE_KEY
+  );
+
+  location.reload();
+};
+
+window.vyaparRegister =
+  window.vyaparLogin;
+
+window.vyaparLogout = function(){
+  localStorage.removeItem(
+    AUTH_TOKEN_KEY
+  );
+
+  localStorage.removeItem(
+    ACCOUNT_CACHE_KEY
+  );
+
+  location.reload();
+};
