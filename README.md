@@ -1,3 +1,4 @@
+#FOR EMAIL SUPPORT - anujguptaofficial09@gmail.com
 # Vyapar AI - Final Developer Package
 
 Vyapar AI is an offline-first business manager for small retailers.
