@@ -1827,27 +1827,53 @@
           },
 
         modal: {
-          ondismiss:
-            function(){
-              paymentBusy = false;
+  confirm_close: true,
+  retry: false,
 
-              if(
-                typeof hidePaymentLoader ===
-                "function"
-              ){
-                hidePaymentLoader();
-              }
+  ondismiss:
+    async function(){
+      /*
+        Sabse pehle frontend payment lock kholo.
+      */
+      paymentBusy = false;
 
-              if(
-                typeof showPaymentCancelPopup ===
-                "function"
-              ){
-                showPaymentCancelPopup(
-                  plan
-                );
-              }
-            }
-        }
+      if(
+        typeof hidePaymentLoader ===
+        "function"
+      ){
+        hidePaymentLoader();
+      }
+
+      /*
+        Backend me incomplete created subscription
+        cancel/abandon karo.
+      */
+      try {
+        await api(
+          "/subscription/abandon",
+          {
+            method: "POST",
+            body: JSON.stringify({})
+          }
+        );
+
+      } catch (error) {
+        console.warn(
+          "Subscription cleanup failed:",
+          error.message
+        );
+      }
+
+      if(
+        typeof showPaymentCancelPopup ===
+        "function"
+      ){
+        showPaymentCancelPopup(
+          plan
+        );
+      }
+    }
+}
       };
 
       const checkout =
@@ -1890,6 +1916,15 @@
       }
 
       checkout.open();
+      setTimeout(function(){
+  /*
+    Kisi browser/WebView me ondismiss event miss ho,
+    tab bhi invisible payment lock permanent na rahe.
+  */
+  if(paymentBusy){
+    paymentBusy = false;
+  }
+}, 15000);
 
     }catch(error){
       paymentBusy = false;
