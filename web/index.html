@@ -5,11 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Vyapar AI</title>
 <meta name="theme-color" content="#071427" />
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="style.css?v=20260713.1" />
+<style id="authCriticalStyles">
+  body.auth-pending { background:#020617; }
+  body.auth-pending > :not(#vyaparOtpGate):not(script) {
+    visibility:hidden !important;
+  }
+</style>
 </head>
 
-<body>
-<script src="otp-gate.js"></script> 
+<body class="auth-pending">
+<script>
+  window.VYAPAR_CONFIG = {
+    apiBase: "https://vypar-backend.onrender.com"
+  };
+</script>
+<script src="otp-gate.js?v=20260713.1"></script> 
 <div id="appLoader" class="video-loader">
   <video
     id="splashVideo"
@@ -48,11 +59,12 @@
 <section id="screen-subscription" class="screen hide"></section>
 <section id="screen-settings" class="screen hide"></section>
 <div class="footer">© Vyapar AI. Business manager for small retailers by Anuj Gupta.</div>
+</div>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-<script src="script.js"></script>
+<script src="script.js?v=20260713.1"></script>
 
-<script src="production.js"></script>
+<script src="production.js?v=20260713.1"></script>
 </body>
 
 </html>
