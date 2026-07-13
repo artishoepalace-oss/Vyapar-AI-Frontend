@@ -85,3 +85,17 @@ Detailed mobile guide:
 ```text
 docs/GITHUB_MOBILE_APK_BUILD.md
 ```
+
+## Production OTP + Subscription Fix Pack (v2.1)
+
+The production web files are in `web/`. The same files are copied into the Android WebView assets.
+
+Important deployment order:
+
+1. Deploy the backend from the separate `vypar-backend` folder.
+2. Add the Brevo **API** variables listed in the backend `.env.example`.
+3. Confirm backend `/` returns `database: true` and `otpConfigured: true`.
+4. Deploy this frontend as a Render Static Site with publish directory `web`.
+5. Hard-refresh the site and test OTP login in an incognito window.
+
+The old `backend-firebase-functions` folder is a legacy template and is not used by the current Render production backend.
