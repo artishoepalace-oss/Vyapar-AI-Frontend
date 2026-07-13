@@ -2,7 +2,12 @@
   "use strict";
 
   const API_BASE =
-    "https://vypar-backend.onrender.com";
+    String(
+      window.VYAPAR_CONFIG &&
+      window.VYAPAR_CONFIG.apiBase
+        ? window.VYAPAR_CONFIG.apiBase
+        : "https://vypar-backend.onrender.com"
+    ).replace(/\/$/, "");
 
   const AUTH_TOKEN_KEY =
     "vyapar_ai_auth_token_v1";
@@ -22,6 +27,7 @@
   let syncTimer = null;
   let syncBusy = false;
   let pendingAfterAuth = null;
+  let paymentBusy = false;
 
   function readJson(
     key,
@@ -77,6 +83,11 @@
     account = null;
 
     applyAccountToApp();
+  }
+
+  function forceOtpLogin(){
+    clearLogin();
+    window.location.reload();
   }
 
   async function api(
@@ -161,6 +172,9 @@
         token
       ){
         clearLogin();
+        setTimeout(function(){
+          window.location.reload();
+        }, 50);
       }
 
       const error =
@@ -351,7 +365,9 @@
       return account;
 
     }catch(error){
-      clearLogin();
+      if(error && error.status === 401){
+        clearLogin();
+      }
       throw error;
     }
   }
@@ -514,7 +530,7 @@
 
   async function pullCloudState(){
     if(!authToken()){
-      openAuthModal("login");
+      forceOtpLogin();
       return;
     }
 
@@ -1028,23 +1044,12 @@
 
   async function logoutAccount(){
     clearLogin();
-
-    if(
-      typeof render ===
-      "function"
-    ){
-      render();
-    }
-
-    premiumToast(
-      "Logged out",
-      "info"
-    );
+    window.location.reload();
   }
 
   async function cancelSubscription(){
     if(!authToken()){
-      openAuthModal("login");
+      forceOtpLogin();
       return;
     }
 
@@ -1069,7 +1074,7 @@
             body:
               JSON.stringify({
                 atCycleEnd:
-                  false
+                  true
               
               })
           }
@@ -1099,16 +1104,36 @@
 
   async function deleteAccount(){
     if(!authToken()){
-      openAuthModal("login");
+      forceOtpLogin();
       return;
     }
 
-    const password =
-      prompt(
-        "Account permanently delete karne ke liye password enter karo:"
-      );
+    const expectedEmail =
+      account &&
+      account.user &&
+      account.user.email
+        ? String(account.user.email).trim().toLowerCase()
+        : "";
 
-    if(!password){
+    const confirmEmail =
+      String(
+        prompt(
+          "Account permanently delete karne ke liye apna exact email enter karo:\n" +
+          expectedEmail
+        ) || ""
+      )
+        .trim()
+        .toLowerCase();
+
+    if(!confirmEmail){
+      return;
+    }
+
+    if(confirmEmail !== expectedEmail){
+      premiumToast(
+        "Email match nahi hua. Account delete nahi kiya gaya.",
+        "error"
+      );
       return;
     }
 
@@ -1124,25 +1149,18 @@
     try{
       await api(
         "/auth/account",
-
         {
-          method:
-            "DELETE",
-
-          body:
-            JSON.stringify({
-              password
-            })
+          method: "DELETE",
+          body: JSON.stringify({
+            confirmEmail
+          })
         }
       );
 
+      localStorage.removeItem("vyapar_ai_prod_v1");
+      localStorage.removeItem(CLOUD_SYNC_TIME_KEY);
       clearLogin();
-
-      localStorage.removeItem(
-        "vyapar_ai_prod_v1"
-      );
-
-      location.reload();
+      window.location.reload();
 
     }catch(error){
       premiumToast(
@@ -1609,14 +1627,7 @@
     }
 
     if(!authToken()){
-      openAuthModal(
-        "login",
-
-        function(){
-          startSubscription(plan);
-        }
-      );
-
+      forceOtpLogin();
       return;
     }
 
@@ -1631,6 +1642,16 @@
 
       return;
     }
+
+    if(paymentBusy){
+      premiumToast(
+        "Payment window already open ho rahi hai",
+        "info"
+      );
+      return;
+    }
+
+    paymentBusy = true;
 
     try{
       if(
@@ -1787,7 +1808,10 @@
                 );
               }
 
+              paymentBusy = false;
+
             }catch(error){
+              paymentBusy = false;
               if(
                 typeof hidePaymentLoader ===
                 "function"
@@ -1805,6 +1829,8 @@
         modal: {
           ondismiss:
             function(){
+              paymentBusy = false;
+
               if(
                 typeof hidePaymentLoader ===
                 "function"
@@ -1831,6 +1857,8 @@
         "payment.failed",
 
         function(response){
+          paymentBusy = false;
+
           if(
             typeof hidePaymentLoader ===
             "function"
@@ -1864,6 +1892,8 @@
       checkout.open();
 
     }catch(error){
+      paymentBusy = false;
+
       if(
         typeof hidePaymentLoader ===
         "function"
@@ -2397,7 +2427,7 @@
       }
 
       if(!authToken()){
-        openAuthModal("login");
+        forceOtpLogin();
 
       }else if(
         typeof showUpgradePopup ===
@@ -2433,16 +2463,10 @@
     startSubscription;
 
   window.vyaparLogin =
-    function(){
-      openAuthModal("login");
-    };
+    forceOtpLogin;
 
   window.vyaparRegister =
-    function(){
-      openAuthModal(
-        "register"
-      );
-    };
+    forceOtpLogin;
 
   window.vyaparLogout =
     logoutAccount;
@@ -2490,29 +2514,4 @@
         appendSubscriptionManagement();
       }
     );
-})();window.vyaparLogin = function(){
-  localStorage.removeItem(
-    AUTH_TOKEN_KEY
-  );
-
-  localStorage.removeItem(
-    ACCOUNT_CACHE_KEY
-  );
-
-  location.reload();
-};
-
-window.vyaparRegister =
-  window.vyaparLogin;
-
-window.vyaparLogout = function(){
-  localStorage.removeItem(
-    AUTH_TOKEN_KEY
-  );
-
-  localStorage.removeItem(
-    ACCOUNT_CACHE_KEY
-  );
-
-  location.reload();
-};
+})();
