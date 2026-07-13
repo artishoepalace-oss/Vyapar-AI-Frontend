@@ -44,83 +44,86 @@ function updateLoaderNetworkStatus(){
 function hideLoader(){
   const loader = document.getElementById('appLoader');
 
-  if(!loader){
+  if(!loader || loader.dataset.closed === '1'){
     return;
   }
 
+  loader.dataset.closed = '1';
   loader.classList.add('hide-loader');
 
   setTimeout(function(){
-    if(loader){
+    if(loader && loader.parentNode){
       loader.remove();
     }
-  }, 650);
+  }, 500);
 }
 
 function setupVideoSplash(){
   const loader = document.getElementById('appLoader');
   const video = document.getElementById('splashVideo');
 
-  if(!loader){
+  if(!loader || loader.dataset.started === '1'){
     return;
   }
 
-  const minimumSplashTime = 20000 ; // 20 seconds
+  loader.dataset.started = '1';
 
-  const startTime = Date.now();
+  const minimumSplashTime = 900;
+  const maximumSplashTime = 3200;
+  const startedAt = Date.now();
+  let mediaFinished = !video;
 
-  function closeAfterMinimumTime(){
-    const passedTime = Date.now() - startTime;
-    const remainingTime = minimumSplashTime - passedTime;
+  function closeWhenReady(){
+    const elapsed = Date.now() - startedAt;
+    const remaining = Math.max(0, minimumSplashTime - elapsed);
 
-    if(remainingTime > 0){
-      setTimeout(hideLoader, remainingTime);
-    } else {
-      hideLoader();
+    if(mediaFinished){
+      setTimeout(hideLoader, remaining);
     }
   }
 
+  const maximumTimer = setTimeout(hideLoader, maximumSplashTime);
+
   if(!video){
-    setTimeout(hideLoader, minimumSplashTime);
+    mediaFinished = true;
+    closeWhenReady();
     return;
   }
 
   video.muted = true;
   video.playsInline = true;
 
-  const playPromise = video.play();
-
-  if(playPromise && typeof playPromise.catch === 'function'){
-    playPromise.catch(function(){
-      setTimeout(hideLoader, minimumSplashTime);
-    });
+  function finish(){
+    mediaFinished = true;
+    clearTimeout(maximumTimer);
+    closeWhenReady();
   }
 
-  video.addEventListener('ended', function(){
-    closeAfterMinimumTime();
-  });
+  video.addEventListener('ended', finish, { once:true });
+  video.addEventListener('error', finish, { once:true });
 
-  video.addEventListener('error', function(){
-    setTimeout(hideLoader, minimumSplashTime);
-  });
+  const playPromise = video.play();
+  if(playPromise && typeof playPromise.catch === 'function'){
+    playPromise.catch(finish);
+  }
 
   setTimeout(function(){
-    hideLoader();
-  }, minimumSplashTime);
+    if(video.readyState < 2){
+      finish();
+    }
+  }, 1200);
 }
 
-window.addEventListener('load', setupVideoSplash);
-setTimeout(setupVideoSplash, 800);
+if(document.readyState === 'complete'){
+  setupVideoSplash();
+}else{
+  window.addEventListener('load', setupVideoSplash, { once:true });
+}
 
-
-window.addEventListener('load', hideLoader);
 window.addEventListener('online', updateLoaderNetworkStatus);
 window.addEventListener('offline', updateLoaderNetworkStatus);
-
-setTimeout(hideLoader, 2600);
-
-window.addEventListener('load', hideLoader);
-setTimeout(hideLoader, 1200);
+setTimeout(setupVideoSplash, 300);
+setTimeout(hideLoader, 3500);
 
 const STORAGE_KEY = 'vyapar_ai_prod_v1';
 const API_BASE_URL = 'https://vypar-backend.onrender.com';
