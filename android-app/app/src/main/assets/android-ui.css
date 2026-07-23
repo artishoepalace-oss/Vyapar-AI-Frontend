@@ -1,0 +1,847 @@
+/* Vyapar AI Android UI v3.1
+   Simple, fast, touch-first interface inspired by modern streaming apps.
+   This file intentionally avoids blur-heavy glass effects for better Android performance. */
+
+:root{
+  --android-bg:#06111f;
+  --android-surface:#0b1929;
+  --android-surface-2:#102238;
+  --android-surface-3:#17304a;
+  --android-top:rgba(6,17,31,.98);
+  --android-nav-bg:rgba(7,19,34,.99);
+  --android-overlay:rgba(1,8,17,.72);
+  --android-border:#1f3a55;
+  --android-border-strong:#2d5275;
+  --android-text:#eef7ff;
+  --android-muted:#91a8bd;
+  --android-placeholder:#6f879d;
+  --android-nav-muted:#738ca4;
+  --android-accent:#4c91ff;
+  --android-accent-strong:#2f7df6;
+  --android-accent-soft:rgba(76,145,255,.14);
+  --android-danger:#ff5f73;
+  --android-danger-bg:rgba(255,95,115,.10);
+  --android-danger-text:#ff9baa;
+  --android-success:#31d998;
+  --android-success-bg:rgba(49,217,152,.10);
+  --android-success-text:#a9f3d2;
+  --android-logo-bg:#f7fbff;
+  --android-shadow:rgba(0,5,12,.38);
+  --android-radius:18px;
+  --android-radius-sm:13px;
+  --android-nav-h:76px;
+  --android-font:Inter,Roboto,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+}
+
+html.android-ui.theme-light{
+  --android-bg:#f3f8fd;
+  --android-surface:#ffffff;
+  --android-surface-2:#edf4fb;
+  --android-surface-3:#e2edf7;
+  --android-top:rgba(247,251,255,.98);
+  --android-nav-bg:rgba(250,253,255,.99);
+  --android-overlay:rgba(9,31,52,.28);
+  --android-border:#cbdceb;
+  --android-border-strong:#a9c3da;
+  --android-text:#10273b;
+  --android-muted:#5f768b;
+  --android-placeholder:#8296a8;
+  --android-nav-muted:#6e8497;
+  --android-accent:#2f7df6;
+  --android-accent-strong:#2369d8;
+  --android-accent-soft:rgba(47,125,246,.12);
+  --android-danger:#dc3f58;
+  --android-danger-bg:rgba(220,63,88,.08);
+  --android-danger-text:#b82d45;
+  --android-success:#138d60;
+  --android-success-bg:rgba(19,141,96,.08);
+  --android-success-text:#0e704c;
+  --android-logo-bg:#ffffff;
+  --android-shadow:rgba(44,73,99,.16);
+}
+
+html.android-ui{
+  color-scheme:dark;
+  background:var(--android-bg);
+  scroll-behavior:smooth;
+}
+
+html.android-ui.theme-light{
+  color-scheme:light;
+  background:var(--android-bg);
+}
+
+.android-ui body{
+  margin:0;
+  min-height:100vh;
+  overflow-x:hidden;
+  background:var(--android-bg)!important;
+  color:var(--android-text)!important;
+  font-family:var(--android-font)!important;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+.android-ui body::before,
+.android-ui body::after,
+.android-ui .card::before{
+  display:none!important;
+}
+
+.android-ui *,
+.android-ui *::before,
+.android-ui *::after{
+  box-sizing:border-box;
+}
+
+.android-ui button,
+.android-ui input,
+.android-ui select,
+.android-ui textarea{
+  font-family:inherit!important;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.android-ui .app{
+  width:100%;
+  max-width:760px;
+  min-height:100vh;
+  margin:0 auto;
+  padding:0 14px calc(var(--android-nav-h) + 34px + env(safe-area-inset-bottom));
+  position:relative;
+  z-index:1;
+}
+
+/* Compact Android app bar */
+.android-ui .top{
+  position:sticky;
+  top:0;
+  z-index:80;
+  min-height:68px;
+  margin:0 -14px 14px;
+  padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  background:var(--android-top)!important;
+  border-bottom:1px solid var(--android-border);
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
+.android-ui .brand{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.android-ui .logo{
+  width:42px!important;
+  height:42px!important;
+  flex:0 0 42px;
+  border-radius:13px!important;
+  object-fit:cover;
+  background:var(--android-logo-bg);
+  box-shadow:none!important;
+}
+
+.android-ui .brand h1{
+  margin:0;
+  color:var(--android-text);
+  font-size:19px!important;
+  line-height:1.1;
+  font-weight:850;
+  letter-spacing:-.025em!important;
+}
+
+.android-ui .brand .tag{
+  max-width:52vw;
+  margin-top:3px;
+  overflow:hidden;
+  color:var(--android-muted)!important;
+  font-size:11.5px!important;
+  line-height:1.2;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.android-ui .top-actions{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:nowrap;
+}
+
+.android-ui .badge,
+.android-ui .theme-toggle{
+  min-height:38px;
+  margin:0;
+  padding:0 11px!important;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--android-border)!important;
+  border-radius:999px!important;
+  background:var(--android-surface)!important;
+  color:var(--android-text)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  white-space:nowrap;
+}
+
+.android-ui .theme-toggle{
+  width:38px;
+  padding:0!important;
+  font-size:0!important;
+}
+
+.android-ui .theme-toggle::after{
+  content:"☾";
+  font-size:18px;
+  line-height:1;
+  color:var(--android-muted);
+}
+
+.android-ui.theme-light .theme-toggle::after{
+  content:"☀";
+  color:var(--android-accent-strong);
+}
+
+/* Screen structure */
+.android-ui .screen{
+  padding:0 0 12px;
+  animation:androidScreenIn .16s ease-out both;
+}
+
+@keyframes androidScreenIn{
+  from{opacity:.4;transform:translateY(4px)}
+  to{opacity:1;transform:none}
+}
+
+.android-ui .android-screen-title{
+  margin:2px 2px 14px;
+}
+
+.android-ui .android-screen-title h2{
+  margin:0;
+  font-size:25px;
+  line-height:1.12;
+  letter-spacing:-.035em;
+}
+
+.android-ui .android-screen-title p{
+  margin:5px 0 0;
+  color:var(--android-muted);
+  font-size:12.5px;
+  line-height:1.45;
+}
+
+/* Flat cards */
+.android-ui .card,
+.android-ui .stat,
+.android-ui .notice,
+.android-ui .code-output,
+.android-ui .code-note,
+.android-ui .code-preview{
+  color:var(--android-text)!important;
+  border:1px solid var(--android-border)!important;
+  background:var(--android-surface)!important;
+  border-radius:var(--android-radius)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
+.android-ui .card{
+  margin-bottom:12px;
+  padding:16px!important;
+  overflow:hidden;
+}
+
+.android-ui .card:hover,
+.android-ui .stat:hover{
+  transform:none!important;
+  border-color:var(--android-border-strong)!important;
+}
+
+.android-ui .card h2,
+.android-ui .card h3,
+.android-ui .card h4{
+  color:var(--android-text);
+  letter-spacing:-.02em;
+}
+
+.android-ui .muted,
+.android-ui .small,
+.android-ui label{
+  color:var(--android-muted)!important;
+}
+
+.android-ui label{
+  display:block;
+  margin:2px 0 5px;
+  font-size:11.5px!important;
+  font-weight:750!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+}
+
+.android-ui .grid,
+.android-ui .grid3,
+.android-ui .hero,
+.android-ui .row,
+.android-ui .code-layout,
+.android-ui .code-shell{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:12px!important;
+}
+
+/* Streaming-style horizontal metric rail */
+.android-ui .stats{
+  display:flex!important;
+  gap:10px!important;
+  overflow-x:auto;
+  padding:1px 1px 7px;
+  margin-right:-14px;
+  scroll-snap-type:x proximity;
+  scrollbar-width:none;
+  overscroll-behavior-inline:contain;
+}
+
+.android-ui .stats::-webkit-scrollbar{
+  display:none;
+}
+
+.android-ui .stat{
+  min-width:150px;
+  flex:0 0 150px;
+  padding:14px!important;
+  scroll-snap-align:start;
+}
+
+.android-ui .stat b{
+  display:block;
+  margin-top:5px;
+  color:var(--android-text);
+  font-size:21px!important;
+  letter-spacing:-.025em;
+}
+
+.android-ui .hero-title{
+  margin:0 0 10px;
+  font-size:29px!important;
+  line-height:1.05;
+  letter-spacing:-.045em;
+}
+
+/* Touch-friendly controls */
+.android-ui input,
+.android-ui select,
+.android-ui textarea{
+  width:100%;
+  min-height:50px;
+  margin:0 0 12px;
+  padding:13px 14px!important;
+  color:var(--android-text)!important;
+  background:var(--android-surface-2)!important;
+  border:1px solid var(--android-border)!important;
+  border-radius:var(--android-radius-sm)!important;
+  box-shadow:none!important;
+  outline:none;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  font-size:16px!important;
+}
+
+.android-ui textarea{
+  min-height:100px;
+  resize:vertical;
+}
+
+.android-ui input:focus,
+.android-ui select:focus,
+.android-ui textarea:focus{
+  border-color:var(--android-accent)!important;
+  box-shadow:0 0 0 3px rgba(91,140,255,.14)!important;
+}
+
+.android-ui input::placeholder,
+.android-ui textarea::placeholder{
+  color:var(--android-placeholder)!important;
+}
+
+.android-ui .btn,
+.android-ui .nav button,
+.android-ui .production-actions button{
+  min-height:48px;
+  border:1px solid var(--android-border)!important;
+  border-radius:var(--android-radius-sm)!important;
+  padding:11px 14px!important;
+  background:var(--android-surface-2)!important;
+  color:var(--android-text)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  font-size:13px!important;
+  font-weight:800!important;
+  transition:background .12s ease,transform .08s ease!important;
+}
+
+.android-ui .btn:active,
+.android-ui .production-actions button:active{
+  transform:scale(.985)!important;
+}
+
+.android-ui .btn.primary,
+.android-ui .production-actions button.primary{
+  border-color:transparent!important;
+  background:var(--android-accent-strong)!important;
+  color:#fff!important;
+}
+
+.android-ui .btn.gold{
+  border-color:transparent!important;
+  background:#f0b429!important;
+  color:#17120a!important;
+}
+
+.android-ui .btn.danger,
+.android-ui .production-actions button.danger{
+  border-color:rgba(255,77,97,.35)!important;
+  background:var(--android-danger-bg)!important;
+  color:var(--android-danger-text)!important;
+}
+
+.android-ui .actions,
+.android-ui .production-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.android-ui .actions .btn,
+.android-ui .production-actions button{
+  flex:1 1 130px;
+}
+
+/* Tables */
+.android-ui .scroll{
+  margin:0 -2px;
+  overflow:auto;
+  border:1px solid var(--android-border);
+  border-radius:14px;
+  background:var(--android-surface-2);
+  scrollbar-width:thin;
+}
+
+.android-ui .table{
+  min-width:680px;
+  background:transparent;
+}
+
+.android-ui .table th,
+.android-ui .table td{
+  padding:12px 11px!important;
+  border-bottom:1px solid var(--android-border)!important;
+  color:var(--android-text);
+  font-size:12px!important;
+}
+
+.android-ui .table th{
+  position:sticky;
+  top:0;
+  z-index:1;
+  background:var(--android-surface-3);
+  color:var(--android-muted);
+  font-weight:800;
+}
+
+/* Compact 5-item bottom navigation */
+.android-ui .nav{
+  position:fixed!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:0!important;
+  top:auto!important;
+  z-index:900!important;
+  width:min(100%,760px)!important;
+  height:calc(var(--android-nav-h) + env(safe-area-inset-bottom));
+  margin:0!important;
+  padding:7px 8px calc(7px + env(safe-area-inset-bottom))!important;
+  display:grid!important;
+  grid-template-columns:repeat(5,1fr)!important;
+  gap:2px!important;
+  transform:translateX(-50%)!important;
+  overflow:visible!important;
+  border:0!important;
+  border-top:1px solid var(--android-border)!important;
+  border-radius:0!important;
+  background:var(--android-nav-bg)!important;
+  box-shadow:0 -8px 30px var(--android-shadow)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
+.android-ui .nav button{
+  min-width:0;
+  min-height:60px;
+  padding:6px 2px!important;
+  display:flex!important;
+  flex-direction:column;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  border:0!important;
+  border-radius:12px!important;
+  background:transparent!important;
+  color:var(--android-nav-muted)!important;
+  text-align:center!important;
+  font-size:10px!important;
+  font-weight:750!important;
+}
+
+.android-ui .nav button.active{
+  color:var(--android-accent)!important;
+  background:var(--android-accent-soft)!important;
+}
+
+.android-ui .android-nav-icon{
+  width:23px;
+  height:23px;
+  display:grid;
+  place-items:center;
+  color:currentColor;
+}
+
+.android-ui .android-nav-icon svg{
+  width:22px;
+  height:22px;
+  display:block;
+  stroke:currentColor;
+  stroke-width:2;
+  fill:none;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.android-ui .android-nav-label{
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+/* More bottom sheet */
+.android-ui .android-sheet-overlay{
+  position:fixed;
+  inset:0;
+  z-index:2000000000;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  padding:0;
+  background:var(--android-overlay);
+  animation:androidFadeIn .14s ease-out both;
+}
+
+@keyframes androidFadeIn{from{opacity:0}to{opacity:1}}
+
+.android-ui .android-sheet{
+  width:min(100%,760px);
+  padding:10px 14px calc(18px + env(safe-area-inset-bottom));
+  border:1px solid var(--android-border);
+  border-bottom:0;
+  border-radius:24px 24px 0 0;
+  background:var(--android-surface);
+  box-shadow:0 -18px 60px var(--android-shadow);
+  animation:androidSheetUp .18s ease-out both;
+}
+
+@keyframes androidSheetUp{
+  from{transform:translateY(25px);opacity:.6}
+  to{transform:none;opacity:1}
+}
+
+.android-ui .android-sheet-handle{
+  width:40px;
+  height:4px;
+  margin:2px auto 16px;
+  border-radius:999px;
+  background:var(--android-border-strong);
+}
+
+.android-ui .android-sheet h3{
+  margin:0 0 12px;
+  font-size:20px;
+  letter-spacing:-.02em;
+}
+
+.android-ui .android-sheet-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
+}
+
+.android-ui .android-sheet-item{
+  min-height:64px;
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:11px 12px;
+  border:1px solid var(--android-border);
+  border-radius:15px;
+  background:var(--android-surface-2);
+  color:var(--android-text);
+  text-align:left;
+  font-weight:800;
+}
+
+.android-ui .android-sheet-item svg{
+  width:22px;
+  height:22px;
+  flex:0 0 22px;
+  fill:none;
+  stroke:var(--android-accent);
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.android-ui .android-sheet-item small{
+  display:block;
+  margin-top:2px;
+  color:var(--android-muted);
+  font-size:10px;
+  font-weight:600;
+}
+
+.android-ui .android-sheet-legal{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  margin-top:15px;
+  padding-top:14px;
+  border-top:1px solid var(--android-border);
+}
+
+.android-ui .android-sheet-legal a{
+  color:var(--android-muted);
+  font-size:11px;
+  text-decoration:none;
+}
+
+/* Compact quick actions */
+.android-ui .android-quick-actions{
+  display:flex;
+  gap:9px;
+  overflow-x:auto;
+  margin:0 -14px 14px;
+  padding:0 14px 3px;
+  scrollbar-width:none;
+}
+
+.android-ui .android-quick-actions::-webkit-scrollbar{display:none}
+
+.android-ui .android-quick-action{
+  min-width:126px;
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border:1px solid var(--android-border);
+  border-radius:999px;
+  background:var(--android-surface);
+  color:var(--android-text);
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.android-ui .android-quick-action.primary{
+  border-color:transparent;
+  background:var(--android-accent-strong);
+}
+
+/* Loaders */
+.android-ui .android-loader{
+  position:fixed;
+  inset:0;
+  z-index:2147483646;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  background:var(--android-bg);
+  transition:opacity .18s ease,visibility .18s ease;
+}
+
+.android-ui .android-loader.hide-loader{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+
+.android-ui .android-loader img{
+  width:72px;
+  height:72px;
+  border-radius:21px;
+  background:var(--android-logo-bg);
+}
+
+.android-ui .android-loader strong{
+  font-size:20px;
+  letter-spacing:-.025em;
+}
+
+.android-ui .android-loader-bar{
+  width:94px;
+  height:3px;
+  overflow:hidden;
+  border-radius:99px;
+  background:var(--android-surface-3);
+}
+
+.android-ui .android-loader-bar span{
+  display:block;
+  width:45%;
+  height:100%;
+  border-radius:inherit;
+  background:var(--android-accent);
+  animation:androidLoad 1s ease-in-out infinite alternate;
+}
+
+@keyframes androidLoad{from{transform:translateX(0)}to{transform:translateX(120%)}}
+
+.android-ui #tabLoader{
+  position:fixed!important;
+  top:calc(8px + env(safe-area-inset-top))!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  z-index:1000!important;
+  transform:translate(-50%,-14px)!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  background:transparent!important;
+}
+
+.android-ui #tabLoader.show{
+  transform:translate(-50%,0)!important;
+  opacity:1!important;
+}
+
+.android-ui .tab-loader-card{
+  min-height:34px!important;
+  padding:7px 11px!important;
+  border:1px solid var(--android-border)!important;
+  border-radius:999px!important;
+  background:var(--android-surface-3)!important;
+  box-shadow:0 8px 24px var(--android-shadow)!important;
+}
+
+.android-ui .tab-loader-text{font-size:10px!important}
+
+.android-ui .footer,
+.android-ui .production-footer{
+  display:none!important;
+}
+
+.android-ui .production-modal,
+.android-ui .production-account-card,
+.android-ui .production-subscription-card{
+  border-color:var(--android-border)!important;
+  background:var(--android-surface)!important;
+  box-shadow:0 20px 60px var(--android-shadow)!important;
+}
+
+.android-ui .production-toast{
+  bottom:calc(var(--android-nav-h) + 16px + env(safe-area-inset-bottom))!important;
+  border-color:var(--android-border)!important;
+  background:var(--android-surface-3)!important;
+}
+
+.android-ui .progress{
+  height:9px!important;
+  border-color:var(--android-border)!important;
+  background:var(--android-surface-3)!important;
+  box-shadow:none!important;
+}
+
+.android-ui .bar{
+  background:var(--android-accent)!important;
+  box-shadow:none!important;
+}
+
+.android-ui canvas{
+  max-width:100%;
+}
+
+.android-ui .chart-wrap canvas{
+  height:250px!important;
+}
+
+.android-ui .hide{display:none!important}
+
+@media(min-width:640px){
+  .android-ui .app{padding-left:20px;padding-right:20px}
+  .android-ui .top{margin-left:-20px;margin-right:-20px;padding-left:20px;padding-right:20px}
+  .android-ui .grid,
+  .android-ui .grid3{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .android-ui .hero{grid-template-columns:1.2fr .8fr!important}
+}
+
+@media(max-width:390px){
+  .android-ui .badge{display:none!important}
+  .android-ui .brand .tag{max-width:56vw}
+  .android-ui .android-sheet-grid{grid-template-columns:1fr}
+  .android-ui .stat{min-width:140px;flex-basis:140px}
+}
+
+
+
+/* Fully working light theme and Android system control fixes */
+.android-ui.theme-light body{
+  background:var(--android-bg)!important;
+  color:var(--android-text)!important;
+}
+
+.android-ui.theme-light select,
+.android-ui.theme-light option{
+  color:var(--android-text)!important;
+  background:var(--android-surface)!important;
+}
+
+.android-ui.theme-light input[type="date"],
+.android-ui.theme-light input[type="month"]{
+  color-scheme:light;
+}
+
+.android-ui:not(.theme-light) input[type="date"],
+.android-ui:not(.theme-light) input[type="month"]{
+  color-scheme:dark;
+}
+
+.android-ui.theme-light .android-loader strong,
+.android-ui.theme-light .android-sheet h3{
+  color:var(--android-text)!important;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .android-ui *,
+  .android-ui *::before,
+  .android-ui *::after{
+    animation:none!important;
+    transition:none!important;
+    scroll-behavior:auto!important;
+  }
+}

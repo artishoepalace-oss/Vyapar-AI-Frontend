@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" class="android-ui">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Vyapar AI</title>
+  <meta name="description" content="Sales, stock, profit and business insights for small retailers." />
+  <meta name="theme-color" content="#06111f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <script>
+    try {
+      const saved = JSON.parse(localStorage.getItem("vyapar_ai_prod_v1") || "{}");
+      if (saved && saved.settings && saved.settings.theme === "light") {
+        document.documentElement.classList.add("theme-light");
+        document.documentElement.style.colorScheme = "light";
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", "#f3f8fd");
+      }
+    } catch (error) {}
+  </script>
+  <link rel="stylesheet" href="style.css?v=20260721fix1" />
+  <link rel="stylesheet" href="android-ui.css?v=20260721fix1" />
+</head>
+<body>
+  <script src="otp-gate.js?v=20260721fix1"></script>
+
+  <div id="appLoader" class="android-loader" aria-label="Loading Vyapar AI">
+    <img src="logo.png" alt="" />
+    <strong>Vyapar AI</strong>
+    <div class="android-loader-bar"><span></span></div>
+  </div>
+
+  <div id="tabLoader">
+    <div class="tab-loader-card">
+      <div class="tab-loader-dot"></div>
+      <div class="tab-loader-text">Loading</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <header class="top">
+      <div class="brand">
+        <img class="logo" src="logo.png" alt="Vyapar AI" />
+        <div>
+          <h1>Vyapar AI</h1>
+          <div class="tag">Business ka clear overview</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="badge" id="planBadge">Free Plan</div>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme(event)" type="button" aria-label="Change appearance">Theme</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="screen-home" class="screen"></section>
+      <section id="screen-upload" class="screen hide"></section>
+      <section id="screen-sales" class="screen hide"></section>
+      <section id="screen-stock" class="screen hide"></section>
+      <section id="screen-analytics" class="screen hide"></section>
+      <section id="screen-calculator" class="screen hide"></section>
+      <section id="screen-subscription" class="screen hide"></section>
+      <section id="screen-settings" class="screen hide"></section>
+    </main>
+
+    <nav class="nav" id="nav" aria-label="Main navigation"></nav>
+  </div>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="script.js?v=20260721fix1"></script>
+  <script src="production.js?v=20260721fix1"></script>
+  <script src="android-ui.js?v=20260721fix1"></script>
+</body>
+</html>
